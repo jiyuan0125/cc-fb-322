@@ -1,0 +1,44 @@
+layer_check.txt -- three-way reconciliation: dwd_balance <-> movements <-> dws_day
+source: stock.db
+layer : warehouse.db
+window: 2026-10-01 .. 2026-10-14  (14 days)
+generated_at: 2026-11-14T07:24:11+00:00
+
+checks
+  [1] dwd_balance flow columns vs movements, grain (wh, sku, day)
+  [2] close chain within each (wh, sku): close = prev + in - out + adj + take_diff
+  [3] dws_day vs dwd_balance, grain (day): sums and sku_count
+  [4] dws_day flow columns vs movements, grain (day)
+  [5] global totals: dwd / dws / movements agree, end close reconciles
+  [6] stocktake: reset applied, take_diff exactly on stocktake days
+
+diff rows: 0 -- every dwd / dws / movement row ties out
+
+info
+  late movements (biz day < insert day): 18 of 96
+    late m0025 sku06/w1 type=IN qty=55 biz=2026-10-02 inserted=2026-10-05
+    late m0023 sku07/w2 type=IN qty=35 biz=2026-10-03 inserted=2026-10-05
+    late m0046 sku01/w1 type=IN qty=24 biz=2026-10-04 inserted=2026-10-08
+    late m0035 sku03/w2 type=IN qty=22 biz=2026-10-05 inserted=2026-10-06
+    late m0041 sku04/w2 type=OUT qty=18 biz=2026-10-05 inserted=2026-10-07
+    late m0047 sku05/w2 type=IN qty=12 biz=2026-10-05 inserted=2026-10-08
+    late m0055 sku09/w2 type=OUT qty=26 biz=2026-10-05 inserted=2026-10-09
+    late m0063 sku08/w1 type=IN qty=-12 biz=2026-10-07 inserted=2026-10-10
+    late m0054 sku06/w1 type=IN qty=45 biz=2026-10-08 inserted=2026-10-09
+    late m0061 sku10/w1 type=IN qty=-8 biz=2026-10-08 inserted=2026-10-10
+    late m0080 sku02/w1 type=IN qty=30 biz=2026-10-08 inserted=2026-10-12
+    late m0062 sku10/w1 type=ADJUST qty=-5 biz=2026-10-09 inserted=2026-10-10
+    late m0078 sku07/w2 type=IN qty=15 biz=2026-10-09 inserted=2026-10-12
+    late m0079 sku01/w1 type=OUT qty=9 biz=2026-10-10 inserted=2026-10-12
+    late m0089 sku05/w1 type=OUT qty=15 biz=2026-10-11 inserted=2026-10-13
+    late m0090 sku06/w1 type=OUT qty=25 biz=2026-10-11 inserted=2026-10-13
+    late m0088 sku06/w1 type=IN qty=-6 biz=2026-10-12 inserted=2026-10-13
+    late m0096 sku04/w2 type=OUT qty=9 biz=2026-10-13 inserted=2026-10-14
+  dwd_balance: 141 rows, 11 (wh,sku) combinations, 14 days, skus=sku01, sku02, sku03, sku04, sku05, sku06, sku07, sku08, sku09, sku10
+  dwd sums in/out/adj = 871/706/0; movements sums = 871/706/0
+  opening placed = 710; net movement = 165; take_diff total = -7; end close expected = 868; dwd = 868; dws = 868
+
+warnings
+  WARN 3 dwd rows with negative close_qty: [('w2', 'sku09', '2026-10-05', -9), ('w2', 'sku09', '2026-10-06', -9), ('w2', 'sku09', '2026-10-07', -9)]
+
+RESULT: PASS -- 0 diff rows
